@@ -39,22 +39,13 @@ impl Config {
 }
 
 fn search<'a>(query: &str, contents: &'a str, ignore_case: bool) -> Vec<&'a str> {
-    let mut results = Vec::new();
-    for line in contents.lines() {
-        match ignore_case {
-            true => {
-                if line.to_lowercase().contains(&query.to_lowercase()) {
-                    results.push(line);
-                }
-            }
-            false => {
-                if line.contains(&query) {
-                    results.push(line);
-                }
-            }
-        }
-    }
-    results
+    contents
+        .lines()
+        .filter(|line| {
+            ignore_case && line.to_lowercase().contains(query.to_lowercase().as_str())
+                || line.contains(query)
+        })
+        .collect()
 }
 
 #[cfg(test)]
