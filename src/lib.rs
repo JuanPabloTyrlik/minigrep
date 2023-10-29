@@ -15,12 +15,19 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn build(args: &[String]) -> Result<Config, &'static str> {
-        if args.len() < 3 {
-            return Err("Not enough arguments");
-        }
-        let query = args[1].clone();
-        let file_path = args[2].clone();
+    pub fn build(mut args: impl Iterator<Item = String>) -> Result<Config, &'static str> {
+        args.next();
+
+        let query = match args.next() {
+            Some(query) => query,
+            None => return Err("Query is required"),
+        };
+
+        let file_path = match args.next() {
+            Some(file_path) => file_path,
+            None => return Err("File path is required"),
+        };
+
         let ignore_case = env::var("IGNORE_CASE").is_ok();
 
         Ok(Config {
@@ -56,12 +63,13 @@ mod tests {
 
     #[test]
     fn config_build() {
-        let args: Vec<String> = vec![
+        let args = [
             "minigrep".to_string(),
             "test".to_string(),
             "test.txt".to_string(),
-        ];
-        let config = Config::build(&args).unwrap();
+        ]
+        .into_iter();
+        let config = Config::build(args).unwrap();
         assert_eq!(config.query, "test");
         assert_eq!(config.file_path, "test.txt");
     }
